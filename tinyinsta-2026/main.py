@@ -5,7 +5,7 @@ import os
 import random
 import time
 
-app = Flask(__name__)
+app = Flask(__name__) #créer l'application WSGI
 app.secret_key = 'dev-key'  # À changer en prod
 client = datastore.Client()
 
@@ -35,8 +35,10 @@ TEMPLATE_INDEX = '''
 {% endif %}
 '''
 
+#PARTIE 1 
 def get_timeline(user: str, limit: int = 20):
     """Retourne la liste des posts (entités) pour la timeline d'un utilisateur."""
+    #lire la liste des followers
     if not user:
         return []
     follow_key = client.key('User', user)
@@ -44,7 +46,7 @@ def get_timeline(user: str, limit: int = 20):
     follows = []
     if user_entity:
         follows = user_entity.get('follows', [])
-    follows = list({*follows, user})
+    follows = list({*follows, user}) #ensemble avec les followers du user et le user 
 
     timeline = []
     used_gql = False
