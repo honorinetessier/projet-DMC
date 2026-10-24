@@ -38,11 +38,11 @@ TEMPLATE_INDEX = '''
 #PARTIE 1 
 def get_timeline(user: str, limit: int = 20):
     """Retourne la liste des posts (entités) pour la timeline d'un utilisateur."""
-    #lire la liste des followers
+    #lire la liste des followees
     if not user:
         return []
-    follow_key = client.key('User', user)
-    user_entity = client.get(follow_key)
+    follow_key = client.key('User', user) #création de la clé du user
+    user_entity = client.get(follow_key) #ici on fait le lookup, on récupère les données concernant user
     follows = []
     if user_entity:
         follows = user_entity.get('follows', [])
@@ -60,18 +60,18 @@ def get_timeline(user: str, limit: int = 20):
         pass
     if not used_gql:
         try:
-            query = client.query(kind='Post')
-            query.add_filter('author', 'IN', follows)
-            query.order = ['-created']
-            timeline = list(query.fetch(limit=limit))
-        except Exception:
+            query = client.query(kind='Post') #prépare une requête sur les posts
+            query.add_filter('author', 'IN', follows) #on récupère les posts tq les auteurs sont dans la liste
+            query.order = ['-created'] #on trie par date de création décroissante(-) 
+            timeline = list(query.fetch(limit=limit)) #lance la requete avec 20 résultats minimum
+        except Exception: #on exécute si IN à échouer 
             posts = []
             for author in follows:
                 q = client.query(kind='Post')
-                q.add_filter('author', '=', author)
+                q.add_filter('author', '=', author) #on fait une requête sur un seul auteur à chaque pour récupérer au plus ses 20 posts les plus recents 
                 q.order = ['-created']
                 posts.extend(list(q.fetch(limit=limit)))
-            timeline = sorted(posts, key=lambda p: p.get('created'), reverse=True)[:limit]
+            timeline = sorted(posts, key=lambda p: p.get('created'), reverse=True)[:limit] #maintenant on peut tout trier 
     return timeline
 
 
