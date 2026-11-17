@@ -31,11 +31,11 @@ La base contient les entités `User` (`Nom/ID`, `follows`) et `Post` (`Nom/ID`, 
 Voici les différents jeux ajoutés à notre Datastore : 
 
 | Jeux | `U` | `P` | `F` |
-|---|---|---|---|---|
-| `base` | 1 000 | 20 | 20 | 
-| `u100`, `u10000` | 100 ; 10 000 | 20 | 20 | 
-| `p10`, `p100`, `p1000` | 100 | 10 ; 100 ; 1 000 | 20 | 
-| `f05` à `f100` (pas de 5) | 120 | 20 | 5 à 100 | 
+|---|---:|---:|---:|
+| `base` | 1 000 | 20 | 20 |
+| `u100`, `u10000` | 100 ; 10 000 | 20 | 20 |
+| `p10`, `p100`, `p1000` | 100 | 10 ; 100 ; 1 000 | 20 |
+| `f05` à `f100` (pas de 5) | 120 | 20 | 5 à 100 |
 
 Les jeux sont générés avec `bench/seed_exact.py` , par exemple :
 
@@ -298,8 +298,18 @@ Cependant, notre modification présente aussi quelques limites. Si une requête 
 | **Instances (`N`)** | **Oui, presque proportionnellement** | De 1 à 4 instances (`C≤64`) | Un worker synchrone Gunicorn par instance, ajouter des instances ajoute de la capacité de traitement. | Fig. 2a et 2b |
 
 
-**Verdict d'ensemble :** Nos résultats montrent que TinyInsta passe bien à l'échelle lorsque le nombre d'utilisateurs (`U`), le nombre de posts (`P`) ou le nombre d'instances (`N`) augmente, dans les limites de nos tests.
-En revanche, lorsque le nombre de comptes suivis (`F`) augmente, le traitement des timelines devient plus long. Notre modification permet toutefois de **réduire fortement ce temps de traitement**, notamment en évitant le problème observé à `F=30` dans la version initiale.
+
+**Verdict d'ensemble : TinyInsta passe-t-elle à l'échelle ?**
+
+Nos expériences montrent que **TinyInsta passe globalement à l'échelle, mais avec certaines limites**.
+
+Dans la partie 1, nous avons montré que l'augmentation du nombre d'utilisateurs (`U`) ou du nombre de posts par utilisateur (`P`) n'a presque pas d'influence sur le temps de traitement des timelines.
+Dans la partie 2, nous avons observé que l'ajout d'instances (`N`) permet d'augmenter presque proportionnellement le débit maximal. En passant de 1 à 4 instances, le débit est multiplié par environ **3,84**.
+En revanche, le nombre de comptes suivis (`F`) représente une limite importante. Dans la version initiale, le temps de traitement augmente fortement dès `F=30`, à cause du fallback.
+La modification réalisée dans la partie 3 permet de corriger en grande partie ce problème. Par exemple, pour `F=100`, le temps serveur passe d'environ **1 559 ms à 94 ms**, soit un traitement **16,5 fois plus rapide**.
+
+Nous pouvons donc conclure que **TinyInsta passe bien à l'échelle pour le nombre d'utilisateurs, le nombre de posts et le nombre d'instances dans les limites de nos expériences**. Pour le nombre de comptes suivis, notre optimisation améliore fortement les performances, même si le temps de traitement continue d'augmenter avec `F`.
+
 
 
 ## 4. Validité
