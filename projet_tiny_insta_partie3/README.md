@@ -17,6 +17,8 @@ Nous évaluons ici le passage à l'échelle de l'application TinyInsta selon deu
 | Emplacement Datastore | europe-west3 |
 | Version par défaut | https://github.com/honorinetessier/projet_tiny_insta |
 | Version finale après correction de la partie 3 | https://github.com/honorinetessier/projet-DMC |
+| Application initiale | https://tiny-insta-510113.lm.r.appspot.com/ |
+| Application optimisée | https://unified-atom-514316-p4.ey.r.appspot.com/ |
 | Dates des mesures | **31 octobre 2026** (partie 1), **5 novembre 2026** (partie 2), **16 novembre 2026** (partie 3) |
 | D'où tourne le client ? | Locust est exécuté depuis **Google Cloud Shell**  |
 | Versions des bibliothèques de mesure | `google-cloud-datastore==2.19.0`, `locust==2.47.0`, `matplotlib==3.11.2`, `pandas==3.0.6` (`raw/env_freeze.txt`) |
