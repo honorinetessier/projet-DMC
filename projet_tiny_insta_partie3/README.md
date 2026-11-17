@@ -11,7 +11,8 @@ Nous évaluons ici le passage à l'échelle de l'application TinyInsta selon deu
 
 | Élément | Configuration utilisée ou documentée |
 |---|---|
-| Projet Google Cloud | unified-atom-514316-p4  |
+| Projet Google Cloud — version initiale | `tiny-insta-510113` |
+| Projet Google Cloud — version optimisée | `unified-atom-514316-p4` 
 | Région App Engine | europe-west3 |
 | Emplacement Datastore | europe-west3 |
 | Version par défaut | https://github.com/honorinetessier/projet_tiny_insta |
@@ -30,7 +31,7 @@ La base contient les entités `User` (`Nom/ID`, `follows`) et `Post` (`Nom/ID`, 
 Voici les différents jeux ajoutés à notre Datastore : 
 
 | Jeux | `U` | `P` | `F` |
-|---|---:|---:|---:|---|
+|---|---|---|---|---|
 | `base` | 1 000 | 20 | 20 | 
 | `u100`, `u10000` | 100 ; 10 000 | 20 | 20 | 
 | `p10`, `p100`, `p1000` | 100 | 10 ; 100 ; 1 000 | 20 | 
@@ -200,7 +201,7 @@ Ainsi, **l'augmentation de la latence vient principalement du fait que les requ�
 | 32 | 1 015,8 ms | 423,6 ms | 284,0 ms |
 | 64 | 2 081,8 ms | 619,8 ms | 490,5 ms |
 
-Après saturation, **ajouter de la concurrence augmente principalement l'attente**. Avec `N=1` et `C=64`, la médiane mesurée vaut **2 081,8 ms** contre **2 091,2 ms** prévus par `C/débit`. Avec `N=2` et `C=64`, la médiane n'est que de **619,8 ms** pour **1 013,9 ms** prédits. Cette variation vient du fait que : **la loi de Little concerne une moyenne, pas une médiane**. Les mesures individuelles donnent environ **995 ms de moyenne** avec `N=4, C=64`, la moyenne est d'environ **543 ms** contre **545 ms** prédits. **H3 est donc cohérente avec les données lorsque nous comparons des moyennes.**
+Après saturation, **ajouter de la concurrence augmente principalement l'attente**. Avec `N=1` et `C=64`, la médiane mesurée vaut **2 081,8 ms** contre **2 091,2 ms** prévus par `C/débit`. Avec `N=2` et `C=64`, la médiane n'est que de **619,8 ms** pour **1 013,9 ms** prédits. Cette variation vient du fait que : **la loi de Little concerne une moyenne, pas une médiane**. Les mesures individuelles donnent environ **995 ms de latence moyenne** pour `N=2, C=64`, ce qui est proche des **1 014 ms** prédits. Pour `N=4, C=64`, la latence moyenne est d'environ **543 ms**, contre **545 ms** prédits. **L'hypothèse H3 est donc confirmée lorsque nous comparons les latences moyennes.**
 
 #### Mise à l'échelle du débit
 
@@ -229,10 +230,9 @@ La modification conduit à **`arrondit_entier_supérieur((F+1)/30)` requêtes gr
 
 La partie 3 **répète la campagne de la partie 1**.
 
-![Figure 3 — Comparaison avant/après selon F](figures/fig3.png)
+![Figure 3 — Comparaison avant/après selon F](figures/fig_compare_1b_3b.png)
 
 *Figure 3 — Comparaison des performances avant (partie 1) et après optimisation (partie 3) : évolution du temps serveur et de la latence client en fonction du nombre de comptes suivis (`F`). Les mesures sont réalisées avec `U=120`, `P=20`, `N=1` et `C=1`. Chaque point correspond à la moyenne des médianes de deux tests, après exclusion des 10 premières secondes.*
-
 
 ![Figure 3a — Temps serveur après correction selon U et P](figures/fig3a.png)
 
@@ -294,7 +294,7 @@ Cependant, notre modification présente aussi quelques limites. Si une requête 
 |---|---|---|---|---|
 | **Utilisateurs (`U`)** | **Oui**, dans la plage étudiée | `U=100` à `10 000` | La requête récupère uniquement les informations de l'utilisateur et des comptes qu'il suit, sans avoir besoin de parcourir tous les utilisateurs de la base de données. | Fig. 1a et 3a |
 | **Posts par utilisateur (`P`)** | **Oui**, dans la plage étudiée | `P=10` à `1 000` | Index `(author, created DESC)` et limitation aux 20 posts les plus récents. | Fig. 1a et 3a |
-| **Followees (`F`)** | **Non avec le code initial après `F=29` , fortement amélioré avec la correction**, mais non constant | Mesuré jusqu'à `F=100` ; seuil initial à `F=30`, puis paliers aux changements de nombre de groupes | Initialement, limite de 30 valeurs `IN` et fallback séquentiel, après correction, requêtes `IN` par groupes de 30, puis fusion. | Fig. 1b, 3b et **3** |
+| **Followees (`F`)** | **Non avec le code initial après `F=29` , fortement amélioré avec la correction**, mais non constant | Mesuré jusqu'à `F=100` ; seuil initial à `F=30`, puis paliers aux changements de nombre de groupes | Initialement, limite de 30 valeurs `IN` et fallback séquentiel, après correction, requêtes `IN` par groupes de 30, puis fusion. | Fig. 1b, 3b et 3 (comparaison avant/après) |
 | **Instances (`N`)** | **Oui, presque proportionnellement** | De 1 à 4 instances (`C≤64`) | Un worker synchrone Gunicorn par instance, ajouter des instances ajoute de la capacité de traitement. | Fig. 2a et 2b |
 
 
